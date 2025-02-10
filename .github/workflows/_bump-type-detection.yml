@@ -19,10 +19,14 @@ jobs:
 
       - name: Get PR tag
         run: |
-          if [[ "$(jq -r '.pull_request.labels[] | select(.name=="major")' <<< "${{ toJson(github.event) }}")" != "" ]]; then
+          PR_LABEL=$(jq -r '.pull_request.labels[] | select(.name=="major")' <<< "${{ toJson(github.event) }}")
+          if [[ "$PR_LABEL" != "" ]]; then
             echo "::set-output name=PR_LABEL::major"
-          elif [[ "$(jq -r '.pull_request.labels[] | select(.name=="minor")' <<< "${{ toJson(github.event) }}")" != "" ]]; then
-            echo "::set-output name=PR_LABEL::minor"
           else
-            echo "::set-output name=PR_LABEL::patch"
+            PR_LABEL=$(jq -r '.pull_request.labels[] | select(.name=="minor")' <<< "${{ toJson(github.event) }}")
+            if [[ "$PR_LABEL" != "" ]]; then
+              echo "::set-output name=PR_LABEL::minor"
+            else
+              echo "::set-output name=PR_LABEL::patch"
+            fi
           fi
