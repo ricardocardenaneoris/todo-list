@@ -16,4 +16,25 @@ jobs:
     uses: ./.github/workflows/_tag-commit.yml
     with:
       NEW_VERSION: ${{ needs.version-detection.outputs.NEW_VERSION }}
-      
+  
+  delete-branch:
+    name: Delete Branch
+    runs-on: ubuntu-latest
+    needs: [tag-commit]
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v2
+        with:
+          ref: main
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh
+
+      - name: Delete branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          BRANCH_NAME=$(git branch --merged | grep -v '\*' | grep -v 'main' | xargs)
+          for branch in $BRANCH_NAME; do
+            gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$branch"
+          done
