@@ -12,34 +12,25 @@ jobs:
   label-detection:
     runs-on: ubuntu-latest
     outputs:
-      PR_LABEL: ${{ steps.detect-label.outputs.PR_LABEL }}
-      
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Ensures we get all tags
+      PR_LABEL: ${{ steps.get-label.outputs.PR_LABEL }}
 
-      - name: Get PR tag
-        id: detect-label
+    steps:
+      - name: Get PR Label
+        id: get-label
         env:
           LABELS: ${{ toJson(github.event.pull_request.labels) }}
         run: |
           echo "PR Labels: $LABELS"
-          
+
           if echo "$LABELS" | grep -q '"name":"major"'; then
-            echo "PR_LABEL=major" >> $GITHUB_ENV
-            echo "PR_LABEL=major" >> $GITHUB_OUTPUT
+            LABEL="major"
           elif echo "$LABELS" | grep -q '"name":"minor"'; then
-            echo "PR_LABEL=minor" >> $GITHUB_ENV
-            echo "PR_LABEL=minor" >> $GITHUB_OUTPUT
+            LABEL="minor"
           elif echo "$LABELS" | grep -q '"name":"patch"'; then
-            echo "PR_LABEL=patch" >> $GITHUB_ENV
-            echo "PR_LABEL=patch" >> $GITHUB_OUTPUT
+            LABEL="patch"
           else
-            echo "PR_LABEL=patch" >> $GITHUB_ENV
-            echo "PR_LABEL=patch" >> $GITHUB_OUTPUT
+            LABEL="patch"
           fi
 
-      - name: Output PR Label
-        run: echo "Determined PR Label: ${{ steps.detect-label.outputs.PR_LABEL }}"
+          echo "PR_LABEL=$LABEL" >> $GITHUB_ENV
+          echo "PR_LABEL=$LABEL" >> $GITHUB_OUTPUT  # ✅ Fixes workflow output issue
