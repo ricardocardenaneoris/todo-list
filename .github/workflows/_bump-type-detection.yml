@@ -9,28 +9,39 @@ on:
         value: ${{ jobs.label-detection.outputs.PR_LABEL }}
 
 jobs:
-  label-detection:
+  get-pr-label:
     runs-on: ubuntu-latest
     outputs:
-      PR_LABEL: ${{ steps.get-label.outputs.PR_LABEL }}
-
+      PR_LABEL: ${{ steps.set-label.outputs.PR_LABEL }}
     steps:
-      - name: Get PR Label
-        id: get-label
-        env:
-          LABELS: ${{ toJson(github.event.pull_request.labels) }}
+      - name: Find PR and Get Labels
+        id: set-label
         run: |
-          echo "PR Labels: $LABELS"
-          echo "Full Event: ${{ toJson(github.event) }}"
-          if echo "$LABELS" | grep -q '"name":"major"'; then
-            LABEL="major"
-          elif echo "$LABELS" | grep -q '"name":"minor"'; then
-            LABEL="minor"
-          elif echo "$LABELS" | grep -q '"name":"patch"'; then
-            LABEL="patch"
+          PR_NUMBER=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${GITHUB_REF_NAME}" \
+            | jq '.[0].number')
+
+          if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
+            LABELS=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/labels" \
+              | jq -r '.[].name')
+
+            if echo "$LABELS" | grep -q "major"; then
+              PR_LABEL="major"
+            elif echo "$LABELS" | grep -q "minor"; then
+              PR_LABEL="minor"
+            elif echo "$LABELS" | grep -q "patch"; then
+              PR_LABEL="patch"
+            else
+              PR_LABEL="patch"
+            fi
           else
-            LABEL="patch"
+            PR_LABEL="patch"
           fi
 
-          echo "PR_LABEL=$LABEL" >> $GITHUB_ENV
-          echo "PR_LABEL=$LABEL" >> $GITHUB_OUTPUT
+          echo "PR_LABEL=$PR_LABEL" >> $GITHUB_ENV
+          echo "PR_LABEL=$PR_LABEL" >> $GITHUB_OUTPUT
+
+      - name: Debug Output
+        run: |
+          echo "PR Label is: $PR_LABEL"
