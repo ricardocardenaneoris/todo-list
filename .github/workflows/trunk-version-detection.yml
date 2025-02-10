@@ -1,0 +1,59 @@
+name: "Get New Version"
+description: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the new version."
+inputs:
+  labels:
+    description: "Comma-separated PR labels"
+    required: true
+
+outputs:
+  new_version:
+    description: "The new version tag"
+    value: ${{ steps.calculate-version.outputs.new_version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Ensures we get all tags
+
+    - name: Get latest tag
+      id: latest_tag
+      shell: bash
+      run: |
+        TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+        echo "latest_tag=$TAG" >> $GITHUB_ENV
+        echo "Latest tag: $TAG"
+
+    - name: Determine version bump type
+      id: version_type
+      shell: bash
+      run: |
+        LABELS="${{ inputs.labels }}"
+        if [[ "$LABELS" == *"major"* ]]; then
+          echo "bump_type=major" >> $GITHUB_ENV
+        elif [[ "$LABELS" == *"minor"* ]]; then
+          echo "bump_type=minor" >> $GITHUB_ENV
+        else
+          echo "bump_type=patch" >> $GITHUB_ENV
+        fi
+        echo "Version bump type: $bump_type"
+
+    - name: Calculate new version
+      id: calculate-version
+      shell: bash
+      run: |
+        OLD_VERSION=${latest_tag#v}
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$OLD_VERSION"
+
+        case "$bump_type" in
+          major) ((MAJOR+=1)); MINOR=0; PATCH=0 ;;
+          minor) ((MINOR+=1)); PATCH=0 ;;
+          patch) ((PATCH+=1)) ;;
+        esac
+
+        NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+        echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+        echo "::set-output name=new_version::$NEW_VERSION"
+        echo "New version: $NEW_VERSION"
