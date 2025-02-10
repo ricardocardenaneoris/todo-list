@@ -1,5 +1,5 @@
 name: Label Detection
-descriptiom: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the label."
+description: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the label."
 
 on:
   workflow_call:
@@ -19,12 +19,10 @@ jobs:
 
       - name: Get PR tag
         run: |
-          if [ -n "${{ github.event.pull_request.labels.find(x => x.name == 'major') }}" ]; then
+          if [[ "$(jq -r '.pull_request.labels[] | select(.name=="major")' <<< "${{ toJson(github.event) }}")" != "" ]]; then
             echo "::set-output name=PR_LABEL::major"
-          elif [ -n "${{ github.event.pull_request.labels.find(x => x.name == 'minor') }}" ]; then
+          elif [[ "$(jq -r '.pull_request.labels[] | select(.name=="minor")' <<< "${{ toJson(github.event) }}")" != "" ]]; then
             echo "::set-output name=PR_LABEL::minor"
           else
             echo "::set-output name=PR_LABEL::patch"
           fi
-
-
