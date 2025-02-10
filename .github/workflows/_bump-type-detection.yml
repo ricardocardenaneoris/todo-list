@@ -1,12 +1,12 @@
 name: Label Detection
-description: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the label."
+descriptiom: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the label."
 
 on:
   workflow_call:
     outputs:
       PR_LABEL:
         description: "The PR Label"
-        value: ${{ jobs.label-detection.outputs.PR_LABEL }}
+        value: ${{ jobs.label-detection.outputs.new_version }}
 
 jobs:
   label-detection:
@@ -24,11 +24,11 @@ jobs:
           echo "PR Labels: $LABELS"
           
           if echo "$LABELS" | grep -q '"name":"major"'; then
-            echo "PR_LABEL=major" >> $GITHUB_ENV
+            echo "::set-output name=PR_LABEL::major"
           elif echo "$LABELS" | grep -q '"name":"minor"'; then
-            echo "PR_LABEL=minor" >> $GITHUB_ENV
+            echo "::set-output name=PR_LABEL::minor"
           elif echo "$LABELS" | grep -q '"name":"patch"'; then
-            echo "PR_LABEL=patch" >> $GITHUB_ENV
+            echo "::set-output name=PR_LABEL::patch"
           else
-            echo "PR_LABEL=patch" >> $GITHUB_ENV
+            echo "::set-output name=PR_LABEL::patch"
           fi
