@@ -1,0 +1,28 @@
+name: Tag Commit
+description: "Updates tag version"
+
+on:
+  workflow_call:
+    inputs:
+      NEW_VERSION:
+        required: true
+        type: string
+
+jobs:
+  update-tag-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-tags: 'true'
+          fetch-depth: 0
+          
+      - name: Echo New Version
+        run: echo ${{ inputs.NEW_VERSION }}
+
+      - name: Git tag
+        run: git tag ${{ inputs.NEW_VERSION }}
+
+      - name: Push tag
+        run: git push origin ${{ inputs.NEW_VERSION }}
