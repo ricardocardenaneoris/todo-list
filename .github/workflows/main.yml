@@ -26,7 +26,7 @@ jobs:
         needs: [npm-install, version-detection]
         uses: ./.github/workflows/_tag-commit.yml
         with:
-          NEW_VERSION: ${{ needs.version-detection.outputs.NEW_VERSION }}
+          NEW_VERSION: ${{ steps.version-detection.outputs.NEW_VERSION }}
 
       - name: Install dependencies
         run: npm install
