@@ -18,15 +18,17 @@ jobs:
           fetch-depth: 0  # Ensures we get all tags
 
       - name: Get PR tag
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels) }}
         run: |
-          PR_LABEL=$(echo '${{ toJson(github.event) }}' | jq -r '.pull_request.labels[] | select(.name=="major")')
-          if [[ "$PR_LABEL" != "" ]]; then
-            echo "::set-output name=PR_LABEL::major"
+          echo "PR Labels: $LABELS"
+          
+          if echo "$LABELS" | grep -q '"name":"major"'; then
+            echo "PR_LABEL=major" >> $GITHUB_ENV
+          elif echo "$LABELS" | grep -q '"name":"minor"'; then
+            echo "PR_LABEL=minor" >> $GITHUB_ENV
+          elif echo "$LABELS" | grep -q '"name":"patch"'; then
+            echo "PR_LABEL=patch" >> $GITHUB_ENV
           else
-            PR_LABEL=$(echo '${{ toJson(github.event) }}' | jq -r '.pull_request.labels[] | select(.name=="minor")')
-            if [[ "$PR_LABEL" != "" ]]; then
-              echo "::set-output name=PR_LABEL::minor"
-            else
-              echo "::set-output name=PR_LABEL::patch"
-            fi
+            echo "PR_LABEL=patch" >> $GITHUB_ENV
           fi
