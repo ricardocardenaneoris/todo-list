@@ -6,9 +6,16 @@ on:
       - 'main'
 
 jobs:
+  bump-type-detection:
+    name: Bump Type Detection
+    uses: ./.github/workflows/_bump-type-detection.yml
+  
   version-detection:
     name: Update Version
+    needs: [bump-type-detection]
     uses: ./.github/workflows/_trunk-version-detection.yml
+    with:
+      NEW_VERSION: ${{ needs.bump-type-detection.outputs.PR_LABEL }}
 
   tag-commit:
     name: Tag Commit
