@@ -21,7 +21,7 @@ jobs:
           LABELS: ${{ toJson(github.event.pull_request.labels) }}
         run: |
           echo "PR Labels: $LABELS"
-
+          echo "Full Event: ${{ toJson(github.event) }}"
           if echo "$LABELS" | grep -q '"name":"major"'; then
             LABEL="major"
           elif echo "$LABELS" | grep -q '"name":"minor"'; then
@@ -33,4 +33,4 @@ jobs:
           fi
 
           echo "PR_LABEL=$LABEL" >> $GITHUB_ENV
-          echo "PR_LABEL=$LABEL" >> $GITHUB_OUTPUT  # ✅ Fixes workflow output issue
+          echo "PR_LABEL=$LABEL" >> $GITHUB_OUTPUT
