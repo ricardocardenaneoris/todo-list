@@ -12,7 +12,7 @@ jobs:
 
   tag-commit:
     name: Tag Commit
-    needs: [npm-install,version-detection]
+    needs: [version-detection]
     uses: ./.github/workflows/_tag-commit.yml
     with:
       NEW_VERSION: ${{ needs.version-detection.outputs.NEW_VERSION }}
