@@ -1,9 +1,12 @@
 name: "Get New Version"
 description: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the new version."
-inputs:
-  labels:
-    description: "Comma-separated PR labels"
-    required: true
+
+on:
+  workflow_call:
+    inputs:
+      labels:
+        required: true
+        type: string
 
 outputs:
   new_version:
