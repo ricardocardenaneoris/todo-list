@@ -8,8 +8,6 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <div>
-      <TodoPage />
-    </div>
+    <TodoPage />
   </React.StrictMode>
 );
