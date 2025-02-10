@@ -17,20 +17,23 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Configure npm authentication
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
       - name: Install dependencies
         run: npm install
 
   version-detection:
-      name: Update Version
-      needs: [npm-install]
-      uses: ./.github/workflows/_trunk-version-detection.yml
+    name: Update Version
+    needs: [npm-install]
+    uses: ./.github/workflows/_trunk-version-detection.yml
 
   tag-commit:
-      name: Tag Commit
-      needs: [npm-install,version-detection]
-      uses: ./.github/workflows/_tag-commit.yml
-      with:
-        NEW_VERSION: ${{ needs.version-detection.outputs.NEW_VERSION }}
+    name: Tag Commit
+    needs: [npm-install,version-detection]
+    uses: ./.github/workflows/_tag-commit.yml
+    with:
+      NEW_VERSION: ${{ needs.version-detection.outputs.NEW_VERSION }}
 
   build:
     runs-on: ubuntu-latest
