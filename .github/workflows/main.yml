@@ -27,7 +27,6 @@ jobs:
         uses: ./.github/workflows/_tag-commit.yml
         with:
           NEW_VERSION: ${{ needs.version-detection.outputs.NEW_VERSION }}
-        secrets: inherit
 
       - name: Install dependencies
         run: npm install
