@@ -3,10 +3,6 @@ description: "Determines the new version tag based on PR labels (major, minor, p
 
 on:
   workflow_call:
-    inputs:
-      labels:
-        required: true
-        type: string
     outputs:
       new_version:
         description: "The new version tag"

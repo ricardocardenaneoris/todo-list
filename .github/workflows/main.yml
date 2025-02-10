@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - npm-install:
+        name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      
+      - version-detection:
+        name: Update Version
+        uses: ./.github/workflows/_trunk-version-detection.yml
+
+      - tag-commit:
+        name: Tag Commit
+        needs: [npm-install,version-detection]
+        uses: ./.github/workflows/_tag-commit.yml
+        with:
+          NEW_VERSION: ${{ needs.version-detection.outputs.NEW_VERSION }}
+        secrets: inherit
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Deploy
+        run: echo "Deploying!"
