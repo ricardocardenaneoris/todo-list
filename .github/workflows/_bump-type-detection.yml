@@ -1,0 +1,30 @@
+name: Label Detection
+descriptiom: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the label."
+
+on:
+  workflow_call:
+    outputs:
+      PR_LABEL:
+        description: "The PR Label"
+        value: ${{ jobs.label-detection.outputs.PR_LABEL }}
+
+jobs:
+  label-detection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures we get all tags
+
+      - name: Get PR tag
+        run: |
+          if [ -n "${{ github.event.pull_request.labels.find(x => x.name == 'major') }}" ]; then
+            echo "::set-output name=PR_LABEL::major"
+          elif [ -n "${{ github.event.pull_request.labels.find(x => x.name == 'minor') }}" ]; then
+            echo "::set-output name=PR_LABEL::minor"
+          else
+            echo "::set-output name=PR_LABEL::patch"
+          fi
+
+
