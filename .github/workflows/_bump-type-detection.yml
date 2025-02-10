@@ -1,16 +1,19 @@
 name: Label Detection
-descriptiom: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the label."
+description: "Determines the new version tag based on PR labels (major, minor, patch) and outputs the label."
 
 on:
   workflow_call:
     outputs:
       PR_LABEL:
         description: "The PR Label"
-        value: ${{ jobs.label-detection.outputs.new_version }}
+        value: ${{ jobs.label-detection.outputs.PR_LABEL }}
 
 jobs:
   label-detection:
     runs-on: ubuntu-latest
+    outputs:
+      PR_LABEL: ${{ steps.detect-label.outputs.PR_LABEL }}
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,17 +21,25 @@ jobs:
           fetch-depth: 0  # Ensures we get all tags
 
       - name: Get PR tag
+        id: detect-label
         env:
           LABELS: ${{ toJson(github.event.pull_request.labels) }}
         run: |
           echo "PR Labels: $LABELS"
           
           if echo "$LABELS" | grep -q '"name":"major"'; then
-            echo "::set-output name=PR_LABEL::major"
+            echo "PR_LABEL=major" >> $GITHUB_ENV
+            echo "PR_LABEL=major" >> $GITHUB_OUTPUT
           elif echo "$LABELS" | grep -q '"name":"minor"'; then
-            echo "::set-output name=PR_LABEL::minor"
+            echo "PR_LABEL=minor" >> $GITHUB_ENV
+            echo "PR_LABEL=minor" >> $GITHUB_OUTPUT
           elif echo "$LABELS" | grep -q '"name":"patch"'; then
-            echo "::set-output name=PR_LABEL::patch"
+            echo "PR_LABEL=patch" >> $GITHUB_ENV
+            echo "PR_LABEL=patch" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=PR_LABEL::patch"
+            echo "PR_LABEL=patch" >> $GITHUB_ENV
+            echo "PR_LABEL=patch" >> $GITHUB_OUTPUT
           fi
+
+      - name: Output PR Label
+        run: echo "Determined PR Label: ${{ steps.detect-label.outputs.PR_LABEL }}"
