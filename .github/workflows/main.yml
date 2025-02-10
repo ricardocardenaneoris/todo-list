@@ -6,8 +6,35 @@ on:
       - 'main'
 
 jobs:
+  npm-install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+  version-detection:
+      name: Update Version
+      needs: [npm-install]
+      uses: ./.github/workflows/_trunk-version-detection.yml
+
+  tag-commit:
+      name: Tag Commit
+      needs: [npm-install,version-detection]
+      uses: ./.github/workflows/_tag-commit.yml
+      with:
+        NEW_VERSION: ${{ needs.version-detection.outputs.NEW_VERSION }}
+
   build:
     runs-on: ubuntu-latest
+    needs: [npm-install,version-detection, tag-commit]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -16,17 +43,7 @@ jobs:
         id: npm-install
         uses: actions/setup-node@v3
         with:
-          node-version: 'v18'
-      
-      - name: Update Version
-        id: version-detection
-        uses: ./.github/workflows/_trunk-version-detection.yml
-
-      - name: Tag Commit
-        needs: [npm-install, version-detection]
-        uses: ./.github/workflows/_tag-commit.yml
-        with:
-          NEW_VERSION: ${{ steps.version-detection.outputs.NEW_VERSION }}
+          node-version: '18'
 
       - name: Install dependencies
         run: npm install
@@ -38,4 +55,4 @@ jobs:
         run: npm test
 
       - name: Deploy
-        run: echo "Deploying!"
+        run: echo "Deploying ${{ needs.version-detection.outputs.NEW_VERSION }}"
